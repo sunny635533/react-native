@@ -40,8 +40,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
@@ -59,6 +61,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import okhttp3.internal.platform.Platform;
 import okio.ByteString;
 
 /**
@@ -153,17 +156,21 @@ public final class NetworkingModule extends ReactContextBaseJavaModule {
     // ==================== SSL ===================
 
     //你的证书文件，放在android的assets文件夹下
-    setCertificates(client.newBuilder(), reactContext,"HSWLROOTCAforInternalTest.crt","HSWLROOTCA.crt");
+//    client = client.newBuilder().hostnameVerifier(new HostnameVerifier() {
+//      @Override
+//      public boolean verify(String hostname, SSLSession session) {
+//    HostnameVerifier hv = HttpsURLConnection.getDefaultHostnameVerifier();
+//        return hv.verify("cz.redlion56.com", session);
+//        return true;
+//      }
+//    }).sslSocketFactory(getSSLContext().getSocketFactory()).build();
 
-    client = client.newBuilder().hostnameVerifier(new HostnameVerifier() {
-      @Override
-      public boolean verify(String hostname, SSLSession session) {
-        return true;
-      }
-    }).sslSocketFactory(getSSLContext().getSocketFactory()).build();
+
+    SSLSocketFactory sslSocketFactory = getSSLFactory(reactContext,"HSWLROOTCAforInternalTest.crt","HSWLROOTCA.crt");
+    X509TrustManager trustManager = Platform.get().trustManager(sslSocketFactory);
+    client = client.newBuilder().sslSocketFactory(sslSocketFactory,trustManager).build();
 
   // ==================== END ======================
-
 
     mClient = client;
     mCookieHandler = new ForwardingCookieHandler(reactContext);
@@ -173,19 +180,19 @@ public final class NetworkingModule extends ReactContextBaseJavaModule {
     mRequestIds = new HashSet<>();
   }
 
-  public void setCertificates(OkHttpClient.Builder client,ReactApplicationContext reactContext,String... names) {
+  /**
+   * 添加证书
+   *
+   */
+  public SSLSocketFactory getSSLFactory(ReactApplicationContext reactContext, String... names) {
     try {
       CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
       KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
       keyStore.load(null);
       int index = 0;
 
-//      InputStream[] certificates=[reactContext.getCurrentActivity().getAssets().open("HSWLROOTCAforInternalTest.crt"),
-//              reactContext.getCurrentActivity().getAssets().open("HSWLROOTCA.crt")];
-//      for (InputStream certificate : certificates) {
-
       for(String name:names){
-        InputStream certificate = reactContext.getCurrentActivity().getAssets().open(name);
+        InputStream certificate = reactContext.getAssets().open(name);
         String certificateAlias = Integer.toString(index++);
         keyStore.setCertificateEntry(certificateAlias, certificateFactory.generateCertificate(certificate));
 
@@ -207,11 +214,11 @@ public final class NetworkingModule extends ReactContextBaseJavaModule {
               trustManagerFactory.getTrustManagers(),
               new SecureRandom()
       );
-      client.sslSocketFactory(sslContext.getSocketFactory());
-
+      return sslContext.getSocketFactory();
     } catch (Exception e) {
       e.printStackTrace();
     }
+    return null;
   }
 
   /**
