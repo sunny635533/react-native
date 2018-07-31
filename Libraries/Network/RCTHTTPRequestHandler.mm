@@ -94,75 +94,49 @@ RCT_EXPORT_MODULE()
 
 #pragma mark - NSURLSession delegate
 
+
 -(void)URLSession:(NSURLSession *)session didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler
 {
-    // 忽略证书验证
-//    completionHandler(NSURLSessionAuthChallengeUseCredential, [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust]);
-    
-    NSLog(@"didReceiveChallenge ");
     if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]) {
-        NSString *host = challenge.protectionSpace.host;
-        NSLog(@"-------------server 11111---------%@", host);
+        NSLog(@"-------------server 11111---------%@", challenge.protectionSpace.host);
+  
+        NSString * cerTestPath = [[NSBundle mainBundle] pathForResource:@"HSWLROOTCAforInternalTest" ofType:@"crt"]; //证书的路径
+        NSData *p12dataTest = [NSData dataWithContentsOfFile:cerTestPath];
         
-        NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
-        completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
-    }else if([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodClientCertificate])
-    {
-         NSLog(@"-------------server 22222222---------");
-        //TODO:设置客户端证书认证
-         SecIdentityRef myIdentity;
+        NSString * cerPath = [[NSBundle mainBundle] pathForResource:@"HSWLROOTCA" ofType:@"crt"]; //证书的路径
+        NSData *p12data = [NSData dataWithContentsOfFile:cerPath];
         
-        SecCertificateRef myCertificateTest = [self getSecCertificateRef:@"HSWLROOTCAforInternalTest" toIdentity:&myIdentity];
-        SecCertificateRef myCertificate = [self getSecCertificateRef:@"HSWLROOTCA" toIdentity:&myIdentity];
-        
-        
+        SecCertificateRef myCertificateTest = SecCertificateCreateWithData(nil, (__bridge CFDataRef)p12dataTest);
+        SecCertificateRef myCertificate = SecCertificateCreateWithData(nil, (__bridge CFDataRef)p12data);
         const void *certs[] = { myCertificateTest,myCertificate };
         CFArrayRef certsArray =CFArrayCreate(NULL, certs,1,NULL);
-        NSURLCredential *credential = [NSURLCredential credentialWithIdentity:myIdentity certificates:(__bridge NSArray*)certsArray persistence:NSURLCredentialPersistencePermanent];
+        
+        SecTrustRef trust = challenge.protectionSpace.serverTrust;
+        SecTrustSetAnchorCertificates(trust, certsArray);
+        
+        completionHandler(NSURLSessionAuthChallengeUseCredential, [NSURLCredential credentialForTrust:trust]);
+        
+        
+//        let trust = challenge.protectionSpace.serverTrust,
+//        let pem = Bundle.main.path(forResource: "https", ofType: "cer"),
+//        let data = NSData(contentsOfFile: pem),
+//        let cert = SecCertificateCreateWithData(nil, data) {
+//            let certs = [cert]
+//            SecTrustSetAnchorCertificates(trust, certs as CFArray)
+//
+//            completionHandler(URLSession.AuthChallengeDisposition.useCredential, URLCredential(trust: trust))
+        
+        
+    }else{
+        //需要system identity和需要与server进行身份验证的所有证书
+        //if([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodClientCertificate])
+         NSLog(@"-------------server 22222222---------");
+        
+        // 忽略证书验证
+        NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
         completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
     }
 }
-
--(SecCertificateRef) getSecCertificateRef:(NSString *)name toIdentity:(SecIdentityRef*)identity{
-    NSString * cerPath = [[NSBundle mainBundle] pathForResource:name ofType:@"crt"]; //证书的路径
-    NSData *p12data = [NSData dataWithContentsOfFile:cerPath];
-    CFDataRef inP12data = (__bridge CFDataRef)p12data;
-    
-    OSStatus status = [self extractIdentity:inP12data toIdentity:identity];
-    if (status != 0) {
-        return NULL;
-    }
-    SecCertificateRef myCertificate;
-    SecIdentityCopyCertificate(*identity, &myCertificate);
-    return myCertificate;
-}
-
-- (OSStatus)extractIdentity:(CFDataRef)inP12Data toIdentity:(SecIdentityRef*)identity {
-    OSStatus securityError = errSecSuccess;
-    CFStringRef password = CFSTR("123456");
-    const void *keys[] = { kSecImportExportPassphrase };
-    const void *values[] = { password };
-    CFDictionaryRef options = CFDictionaryCreate(NULL, keys, values, 1, NULL, NULL);
-    CFArrayRef items = CFArrayCreate(NULL, 0, 0, NULL);
-    securityError = SecPKCS12Import(inP12Data, options, &items);
-    if (securityError == 0)
-    {
-        CFDictionaryRef ident = (CFDictionaryRef)CFArrayGetValueAtIndex(items,0);
-        const void *tempIdentity = NULL;
-        tempIdentity = CFDictionaryGetValue(ident, kSecImportItemIdentity);
-        *identity = (SecIdentityRef)tempIdentity;
-    }
-    else
-    {
-        NSLog(@"clinet.p12 error!");
-    }
-    
-    if (options) {
-        CFRelease(options);
-    }
-    return securityError;
-}
-
 
 - (void)URLSession:(NSURLSession *)session
               task:(NSURLSessionTask *)task

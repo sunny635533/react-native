@@ -112,6 +112,18 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
     protected @Nullable ReadableArray mUrlPrefixesForDefaultIntent;
 
     @Override
+    public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+//      当证书出现问题的时候，有 2 种情况。系统默认不加载该网页
+//      handler.cancel()
+//      handler.proceed()
+
+      //设置webview绕过ssl
+      handler.proceed();
+      super.onReceivedSslError(view, handler, error);
+      System.out.println("========== WebViewClient onReceivedSslError ============");
+    }
+
+    @Override
     public void onPageFinished(WebView webView, String url) {
       super.onPageFinished(webView, url);
 
