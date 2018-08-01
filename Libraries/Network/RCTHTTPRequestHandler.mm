@@ -112,21 +112,18 @@ RCT_EXPORT_MODULE()
         CFArrayRef certsArray =CFArrayCreate(NULL, certs,1,NULL);
         
         SecTrustRef trust = challenge.protectionSpace.serverTrust;
+         //serverTrust是服务器来的验证，有需要被验证的证书。
         SecTrustSetAnchorCertificates(trust, certsArray);
         
+        //8.拿到证书链中的证书个数
+//        CFIndex certificateCount = SecTrustGetCertificateCount(serverTrust);
+        //9.去取得证书链中对应下标的证书。
+//        SecTrustGetCertificateAtIndex(serverTrust, i)
+        //10.根据证书获取公钥。
+//        SecTrustCopyPublicKey(trust)
+        
         completionHandler(NSURLSessionAuthChallengeUseCredential, [NSURLCredential credentialForTrust:trust]);
-        
-        
-//        let trust = challenge.protectionSpace.serverTrust,
-//        let pem = Bundle.main.path(forResource: "https", ofType: "cer"),
-//        let data = NSData(contentsOfFile: pem),
-//        let cert = SecCertificateCreateWithData(nil, data) {
-//            let certs = [cert]
-//            SecTrustSetAnchorCertificates(trust, certs as CFArray)
-//
-//            completionHandler(URLSession.AuthChallengeDisposition.useCredential, URLCredential(trust: trust))
-        
-        
+    
     }else{
         //需要system identity和需要与server进行身份验证的所有证书
         //if([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodClientCertificate])

@@ -32,7 +32,9 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.sql.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -155,20 +157,30 @@ public final class NetworkingModule extends ReactContextBaseJavaModule {
 
     // ==================== SSL ===================
 
-    //你的证书文件，放在android的assets文件夹下
+    client = client.newBuilder().hostnameVerifier(new HostnameVerifier() {
+      @Override
+      public boolean verify(String hostname, SSLSession session) {
+        return true;
+      }
+    }).sslSocketFactory(getSSLContext().getSocketFactory()).build();
+
+//  你的证书文件，放在android的assets文件夹下
+//    SSLSocketFactory sslSocketFactory = getSSLFactory(reactContext,"HSWLROOTCAforInternalTest.crt","HSWLROOTCA.crt");
+//    X509TrustManager trustManager = Platform.get().trustManager(sslSocketFactory);
 //    client = client.newBuilder().hostnameVerifier(new HostnameVerifier() {
 //      @Override
 //      public boolean verify(String hostname, SSLSession session) {
-//    HostnameVerifier hv = HttpsURLConnection.getDefaultHostnameVerifier();
-//        return hv.verify("cz.redlion56.com", session);
-//        return true;
+//        if(hostname.equals("cz.redlion56.com") || hostname.equals("sj.redlion56.com")){
+//          System.out.println("=============== 2222 hostnameVerifier==============hostname:"+hostname);
+//
+//          HostnameVerifier hv = HttpsURLConnection.getDefaultHostnameVerifier();
+//          return hv.verify(hostname, session);
+//        }else {
+//          System.out.println("=============== 1111 hostnameVerifier==============hostname:"+hostname);
+//          return true;
+//        }
 //      }
-//    }).sslSocketFactory(getSSLContext().getSocketFactory()).build();
-
-
-    SSLSocketFactory sslSocketFactory = getSSLFactory(reactContext,"HSWLROOTCAforInternalTest.crt","HSWLROOTCA.crt");
-    X509TrustManager trustManager = Platform.get().trustManager(sslSocketFactory);
-    client = client.newBuilder().sslSocketFactory(sslSocketFactory,trustManager).build();
+//    }).sslSocketFactory(sslSocketFactory,trustManager).build();
 
   // ==================== END ======================
 
@@ -289,7 +301,7 @@ public final class NetworkingModule extends ReactContextBaseJavaModule {
 
     SSLContext sslContext = null;
     try {
-      sslContext = SSLContext.getInstance("SSL");
+      sslContext = SSLContext.getInstance("TLS");
 
       sslContext.init(null, new TrustManager[]{xtm}, new SecureRandom());
 
