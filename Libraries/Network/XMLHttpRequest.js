@@ -226,7 +226,7 @@ class XMLHttpRequest extends EventTarget(...XHR_EVENTS) {
   }
 
   get response(): Response {
-    const {responseType} = this;
+    const { responseType } = this;
     if (responseType === '' || responseType === 'text') {
       return this.readyState < LOADING || this._hasError
         ? ''
@@ -253,13 +253,11 @@ class XMLHttpRequest extends EventTarget(...XHR_EVENTS) {
       case 'blob':
         if (typeof this._response === 'object' && this._response) {
           this._cachedResponse = BlobManager.createFromOptions(this._response);
-        } else {
+        } else if (this._response === '') {
           // for solve ：Invalid response for blob ，when respons is “”
-          if (this._response === '')  {
-            this._cachedResponse = null;
-          } else {
-            throw new Error(`Invalid response for blob: ${this._response}`);
-          }
+          this._cachedResponse = null;
+        } else {
+          throw new Error(`Invalid response for blob: ${this._response}`);
         }
         break;
 
@@ -540,8 +538,8 @@ class XMLHttpRequest extends EventTarget(...XHR_EVENTS) {
     // only call onreadystatechange if there is something to abort,
     // below logic is per spec
     if (!(this.readyState === this.UNSENT ||
-        (this.readyState === this.OPENED && !this._sent) ||
-        this.readyState === this.DONE)) {
+      (this.readyState === this.OPENED && !this._sent) ||
+      this.readyState === this.DONE)) {
       this._reset();
       this.setReadyState(this.DONE);
     }
@@ -561,20 +559,20 @@ class XMLHttpRequest extends EventTarget(...XHR_EVENTS) {
 
   setReadyState(newState: number): void {
     this.readyState = newState;
-    this.dispatchEvent({type: 'readystatechange'});
+    this.dispatchEvent({ type: 'readystatechange' });
     if (newState === this.DONE) {
       if (this._aborted) {
-        this.dispatchEvent({type: 'abort'});
+        this.dispatchEvent({ type: 'abort' });
       } else if (this._hasError) {
         if (this._timedOut) {
-          this.dispatchEvent({type: 'timeout'});
+          this.dispatchEvent({ type: 'timeout' });
         } else {
-          this.dispatchEvent({type: 'error'});
+          this.dispatchEvent({ type: 'error' });
         }
       } else {
-        this.dispatchEvent({type: 'load'});
+        this.dispatchEvent({ type: 'load' });
       }
-      this.dispatchEvent({type: 'loadend'});
+      this.dispatchEvent({ type: 'loadend' });
     }
   }
 
