@@ -95,45 +95,45 @@ RCT_EXPORT_MODULE()
 #pragma mark - NSURLSession delegate
 
 
--(void)URLSession:(NSURLSession *)session didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler
-{
-    if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]) {
-        NSLog(@"-------------server 11111---------%@", challenge.protectionSpace.host);
+// -(void)URLSession:(NSURLSession *)session didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler
+// {
+//     if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]) {
+//         NSLog(@"-------------server 11111---------%@", challenge.protectionSpace.host);
   
-        NSString * cerTestPath = [[NSBundle mainBundle] pathForResource:@"HSWLROOTCAforInternalTest" ofType:@"crt"]; //证书的路径
-        NSData *p12dataTest = [NSData dataWithContentsOfFile:cerTestPath];
+//         NSString * cerTestPath = [[NSBundle mainBundle] pathForResource:@"HSWLROOTCAforInternalTest" ofType:@"crt"]; //证书的路径
+//         NSData *p12dataTest = [NSData dataWithContentsOfFile:cerTestPath];
         
-        NSString * cerPath = [[NSBundle mainBundle] pathForResource:@"HSWLROOTCA" ofType:@"crt"]; //证书的路径
-        NSData *p12data = [NSData dataWithContentsOfFile:cerPath];
+//         NSString * cerPath = [[NSBundle mainBundle] pathForResource:@"HSWLROOTCA" ofType:@"crt"]; //证书的路径
+//         NSData *p12data = [NSData dataWithContentsOfFile:cerPath];
         
-        SecCertificateRef myCertificateTest = SecCertificateCreateWithData(nil, (__bridge CFDataRef)p12dataTest);
-        SecCertificateRef myCertificate = SecCertificateCreateWithData(nil, (__bridge CFDataRef)p12data);
-        const void *certs[] = { myCertificateTest,myCertificate };
-        CFArrayRef certsArray =CFArrayCreate(NULL, certs,1,NULL);
+//         SecCertificateRef myCertificateTest = SecCertificateCreateWithData(nil, (__bridge CFDataRef)p12dataTest);
+//         SecCertificateRef myCertificate = SecCertificateCreateWithData(nil, (__bridge CFDataRef)p12data);
+//         const void *certs[] = { myCertificateTest,myCertificate };
+//         CFArrayRef certsArray =CFArrayCreate(NULL, certs,1,NULL);
         
-        SecTrustRef trust = challenge.protectionSpace.serverTrust;
-         //serverTrust是服务器来的验证，有需要被验证的证书。
-        SecTrustSetAnchorCertificates(trust, certsArray);
+//         SecTrustRef trust = challenge.protectionSpace.serverTrust;
+//          //serverTrust是服务器来的验证，有需要被验证的证书。
+//         SecTrustSetAnchorCertificates(trust, certsArray);
         
-        //8.拿到证书链中的证书个数
-//        CFIndex certificateCount = SecTrustGetCertificateCount(serverTrust);
-        //9.去取得证书链中对应下标的证书。
-//        SecTrustGetCertificateAtIndex(serverTrust, i)
-        //10.根据证书获取公钥。
-//        SecTrustCopyPublicKey(trust)
+//         //8.拿到证书链中的证书个数
+// //        CFIndex certificateCount = SecTrustGetCertificateCount(serverTrust);
+//         //9.去取得证书链中对应下标的证书。
+// //        SecTrustGetCertificateAtIndex(serverTrust, i)
+//         //10.根据证书获取公钥。
+// //        SecTrustCopyPublicKey(trust)
         
-        completionHandler(NSURLSessionAuthChallengeUseCredential, [NSURLCredential credentialForTrust:trust]);
+//         completionHandler(NSURLSessionAuthChallengeUseCredential, [NSURLCredential credentialForTrust:trust]);
     
-    }else{
-        //需要system identity和需要与server进行身份验证的所有证书
-        //if([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodClientCertificate])
-         NSLog(@"-------------server 22222222---------");
+//     }else{
+//         //需要system identity和需要与server进行身份验证的所有证书
+//         //if([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodClientCertificate])
+//          NSLog(@"-------------server 22222222---------");
         
-        // 忽略证书验证
-        NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
-        completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
-    }
-}
+//         // 忽略证书验证
+//         NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
+//         completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
+//     }
+// }
 
 - (void)URLSession:(NSURLSession *)session
               task:(NSURLSessionTask *)task
