@@ -157,12 +157,12 @@ public final class NetworkingModule extends ReactContextBaseJavaModule {
 
     // ==================== SSL ===================
 
-    client = client.newBuilder().hostnameVerifier(new HostnameVerifier() {
-      @Override
-      public boolean verify(String hostname, SSLSession session) {
-        return true;
-      }
-    }).sslSocketFactory(getSSLContext().getSocketFactory()).build();
+    // client = client.newBuilder().hostnameVerifier(new HostnameVerifier() {
+    //   @Override
+    //   public boolean verify(String hostname, SSLSession session) {
+    //     return true;
+    //   }
+    // }).sslSocketFactory(getSSLContext().getSocketFactory()).build();
 
 //  你的证书文件，放在android的assets文件夹下
 //    SSLSocketFactory sslSocketFactory = getSSLFactory(reactContext,"HSWLROOTCAforInternalTest.crt","HSWLROOTCA.crt");
@@ -278,41 +278,41 @@ public final class NetworkingModule extends ReactContextBaseJavaModule {
    *  ========================== SSL ====================
    *
    */
-  private SSLContext getSSLContext() {
-    X509TrustManager xtm = new X509TrustManager() {
-      @Override
-      public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType)
-              throws CertificateException {
+  // private SSLContext getSSLContext() {
+  //   X509TrustManager xtm = new X509TrustManager() {
+  //     @Override
+  //     public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType)
+  //             throws CertificateException {
 
-      }
+  //     }
 
-      @Override
-      public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType)
-              throws CertificateException {
+  //     @Override
+  //     public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType)
+  //             throws CertificateException {
 
-      }
+  //     }
 
-      @Override
-      public X509Certificate[] getAcceptedIssuers() {
-        X509Certificate[] x509Certificates = new X509Certificate[0];
-        return x509Certificates;
-      }
-    };
+  //     @Override
+  //     public X509Certificate[] getAcceptedIssuers() {
+  //       X509Certificate[] x509Certificates = new X509Certificate[0];
+  //       return x509Certificates;
+  //     }
+  //   };
 
-    SSLContext sslContext = null;
-    try {
-      sslContext = SSLContext.getInstance("TLS");
+  //   SSLContext sslContext = null;
+  //   try {
+  //     sslContext = SSLContext.getInstance("TLS");
 
-      sslContext.init(null, new TrustManager[]{xtm}, new SecureRandom());
+  //     sslContext.init(null, new TrustManager[]{xtm}, new SecureRandom());
 
-    } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
-    } catch (KeyManagementException e) {
-      e.printStackTrace();
-    }
+  //   } catch (NoSuchAlgorithmException e) {
+  //     e.printStackTrace();
+  //   } catch (KeyManagementException e) {
+  //     e.printStackTrace();
+  //   }
 
-    return sslContext;
-  }
+  //   return sslContext;
+  // }
 
 
 
